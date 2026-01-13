@@ -138,6 +138,19 @@ class TodoManager:
                 return
         print(f"Error: Todo with ID {todo_id} not found")
 
+    def edit_todo(self, todo_id: int, new_task: str) -> None:
+        """Edit the task description of an existing todo"""
+        for todo in self.todos:
+            if todo['id'] == todo_id:
+                old_task = todo['task']
+                todo['task'] = new_task
+                self._save_todos()
+                print(f"✓ Updated todo {todo_id}:")
+                print(f"  Old: {old_task}")
+                print(f"  New: {new_task}")
+                return
+        print(f"Error: Todo with ID {todo_id} not found")
+
     def _get_priority_marker(self, priority: str) -> str:
         """Get visual marker for priority"""
         markers = {
@@ -161,6 +174,7 @@ COMMANDS:
     list [all]                List todos (use 'all' to show completed)
     complete <id>             Mark todo as completed
     delete <id>               Delete a todo
+    edit <id> <new_task>      Edit an existing todo's description
     search <query> [filter]   Search todos and filter results
                               Filters: high, medium, low, completed, active
     priority <id> <level>     Set priority (high, medium, low)
@@ -170,6 +184,7 @@ EXAMPLES:
     python todo.py add "Buy groceries" high
     python todo.py list
     python todo.py complete 1
+    python todo.py edit 2 "Buy groceries and cook dinner"
     python todo.py search "meeting" high
     python todo.py search "" completed
     python todo.py priority 2 high
@@ -240,6 +255,17 @@ def main():
             todo_id = int(sys.argv[2])
             priority = sys.argv[3].lower()
             manager.set_priority(todo_id, priority)
+        except ValueError:
+            print("Error: ID must be a number")
+
+    elif command == "edit":
+        if len(sys.argv) < 4:
+            print("Error: Usage: todo edit <id> <new_task>")
+            return
+        try:
+            todo_id = int(sys.argv[2])
+            new_task = sys.argv[3]
+            manager.edit_todo(todo_id, new_task)
         except ValueError:
             print("Error: ID must be a number")
 
