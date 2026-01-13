@@ -1,0 +1,10 @@
+# PDOK Postcode Opzoeker - Dependencies
+
+# Web Framework
+Flask==3.0.0
+
+# HTTP Requests
+requests==2.31.0
+
+# Optional: Progress bar voor CLI versie
+tqdm==4.66.1

@@ -1,6 +1,12 @@
 # Todo data file
 todos.json
 
+# Web app uploads and results
+uploads/
+results/
+*.csv
+postcodes_*.txt
+
 # Python cache
 __pycache__/
 *.py[cod]

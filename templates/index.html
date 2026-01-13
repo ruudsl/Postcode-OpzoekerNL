@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDOK Postcode Opzoeker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #d0d0d0;
+            border-radius: 10px;
+            padding: 50px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .upload-area h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-area p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .textarea-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .textarea-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .progress-info {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-card.success {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+        }
+
+        .summary-card.warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .summary-card.error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .summary-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .summary-card p {
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .results-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .result-row {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .result-row .postcode {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .result-row .postcode.error {
+            color: #e74c3c;
+        }
+
+        .result-row .postcode.not-found {
+            color: #f39c12;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.6);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border-left: 4px solid #c33;
+        }
+
+        .alert-info {
+            background: #e7f3ff;
+            color: #0066cc;
+            border-left: 4px solid #0066cc;
+        }
+
+        .example {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .example h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .example pre {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📮 PDOK Postcode Opzoeker</h1>
+            <p>Zoek eenvoudig postcodes op via Nederlandse overheidsdata</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('upload')">📁 Bestand Uploaden</button>
+                <button class="tab" onclick="switchTab('manual')">✍️ Handmatig Invoeren</button>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="upload-tab" class="tab-content active">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📤</div>
+                    <h3>Sleep een bestand hierheen of klik om te selecteren</h3>
+                    <p>Alleen .txt bestanden (maximaal 16MB)</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".txt">
+                </div>
+
+                <div class="example">
+                    <h4>📋 Voorbeeld bestandsformaat:</h4>
+                    <pre>Barrierweg 1, EINDHOVEN
+Pasqualinistraat 10, EINDHOVEN
+Dam 1, AMSTERDAM
+Coolsingel 40, ROTTERDAM</pre>
+                </div>
+            </div>
+
+            <!-- Manual Tab -->
+            <div id="manual-tab" class="tab-content">
+                <textarea id="manualInput" class="textarea-input" placeholder="Voer adressen in, één per regel...
+
+Bijvoorbeeld:
+Barrierweg 1, EINDHOVEN
+Pasqualinistraat 10, EINDHOVEN
+Dam 1, AMSTERDAM"></textarea>
+                <br><br>
+                <button class="btn" onclick="processManual()">🔍 Zoek Postcodes</button>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="progress-section">
+                <h3 style="margin-bottom: 15px;">⏳ Bezig met verwerken...</h3>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar" style="width: 0%">0%</div>
+                </div>
+                <div class="progress-info" id="progressInfo">
+                    Voorbereiden...
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section">
+                <h3 style="margin-bottom: 20px;">✅ Resultaten</h3>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <h3 id="totalCount">0</h3>
+                        <p>Totaal Adressen</p>
+                    </div>
+                    <div class="summary-card success">
+                        <h3 id="foundCount">0</h3>
+                        <p>Postcodes Gevonden</p>
+                    </div>
+                    <div class="summary-card warning">
+                        <h3 id="notFoundCount">0</h3>
+                        <p>Niet Gevonden</p>
+                    </div>
+                    <div class="summary-card error">
+                        <h3 id="errorCount">0</h3>
+                        <p>Errors</p>
+                    </div>
+                </div>
+
+                <div class="results-preview" id="resultsPreview"></div>
+
+                <div class="download-buttons">
+                    <button class="btn" onclick="downloadFile('csv')">📊 Download CSV</button>
+                    <button class="btn btn-secondary" onclick="downloadFile('txt')">📄 Download TXT</button>
+                    <button class="btn btn-secondary" onclick="resetForm()">🔄 Opnieuw</button>
+                </div>
+            </div>
+
+            <!-- Error Alert -->
+            <div id="errorAlert" class="alert alert-error" style="display: none;"></div>
+        </div>
+
+        <div class="footer">
+            <p>Gebruikt data van PDOK Locatieserver (Nederlandse overheid)</p>
+            <p style="margin-top: 5px; font-size: 0.9rem;">Gratis en betrouwbaar • Geen API key nodig</p>
+        </div>
+    </div>
+
+    <script>
+        let currentJobId = null;
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'upload') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('upload-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('manual-tab').classList.add('active');
+            }
+        }
+
+        // Upload area handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        // Handle file upload
+        async function handleFileUpload(file) {
+            hideError();
+
+            if (!file.name.endsWith('.txt')) {
+                showError('Alleen .txt bestanden zijn toegestaan');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Upload mislukt');
+                }
+
+                currentJobId = data.job_id;
+                showProgress();
+                startProgressStream(currentJobId);
+
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Process manual input
+        async function processManual() {
+            hideError();
+
+            const addresses = document.getElementById('manualInput').value;
+
+            if (!addresses.trim()) {
+                showError('Voer minimaal één adres in');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/process-text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ addresses })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Verwerking mislukt');
+                }
+
+                currentJobId = data.job_id;
+                showProgress();
+                startProgressStream(currentJobId);
+
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Start progress stream
+        function startProgressStream(jobId) {
+            const eventSource = new EventSource(`/api/stream/${jobId}`);
+
+            eventSource.onmessage = (event) => {
+                const job = JSON.parse(event.data);
+
+                if (job.error) {
+                    showError(job.error);
+                    eventSource.close();
+                    return;
+                }
+
+                updateProgress(job);
+
+                if (job.status === 'completed') {
+                    eventSource.close();
+                    showResults(job);
+                } else if (job.status === 'error') {
+                    eventSource.close();
+                    showError(job.error || 'Er is een fout opgetreden');
+                }
+            };
+
+            eventSource.onerror = () => {
+                eventSource.close();
+                // Fallback to polling
+                pollJobStatus(jobId);
+            };
+        }
+
+        // Fallback polling
+        async function pollJobStatus(jobId) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/status/${jobId}`);
+                    const job = await response.json();
+
+                    updateProgress(job);
+
+                    if (job.status === 'completed') {
+                        clearInterval(interval);
+                        showResults(job);
+                    } else if (job.status === 'error') {
+                        clearInterval(interval);
+                        showError(job.error || 'Er is een fout opgetreden');
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                    showError('Kan status niet ophalen');
+                }
+            }, 1000);
+        }
+
+        // Update progress
+        function updateProgress(job) {
+            const progressBar = document.getElementById('progressBar');
+            const progressInfo = document.getElementById('progressInfo');
+
+            progressBar.style.width = job.progress + '%';
+            progressBar.textContent = job.progress + '%';
+
+            if (job.total > 0) {
+                progressInfo.textContent = `Verwerkt: ${job.processed} / ${job.total} adressen`;
+            }
+        }
+
+        // Show progress section
+        function showProgress() {
+            document.getElementById('upload-tab').style.display = 'none';
+            document.getElementById('manual-tab').style.display = 'none';
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+        }
+
+        // Show results
+        function showResults(job) {
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+
+            // Update summary
+            const summary = job.summary;
+            document.getElementById('totalCount').textContent = summary.total;
+            document.getElementById('foundCount').textContent = summary.found;
+            document.getElementById('notFoundCount').textContent = summary.not_found;
+            document.getElementById('errorCount').textContent = summary.errors;
+
+            // Show results preview (first 10)
+            const preview = document.getElementById('resultsPreview');
+            preview.innerHTML = '';
+
+            const results = job.results.slice(0, 10);
+            results.forEach(result => {
+                const row = document.createElement('div');
+                row.className = 'result-row';
+
+                let postcodeClass = '';
+                if (result.postcode.startsWith('Error')) {
+                    postcodeClass = 'error';
+                } else if (result.postcode === 'Niet gevonden') {
+                    postcodeClass = 'not-found';
+                }
+
+                row.innerHTML = `
+                    <span>${result.adres}</span>
+                    <span class="postcode ${postcodeClass}">${result.postcode}</span>
+                `;
+                preview.appendChild(row);
+            });
+
+            if (job.results.length > 10) {
+                const more = document.createElement('div');
+                more.style.textAlign = 'center';
+                more.style.padding = '10px';
+                more.style.color = '#666';
+                more.textContent = `... en ${job.results.length - 10} meer (zie download)`;
+                preview.appendChild(more);
+            }
+        }
+
+        // Download file
+        function downloadFile(type) {
+            if (currentJobId) {
+                window.location.href = `/api/download/${currentJobId}/${type}`;
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            currentJobId = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('manualInput').value = '';
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('upload-tab').style.display = 'block';
+            document.getElementById('manual-tab').style.display = 'block';
+            switchTab('upload');
+        }
+
+        // Error handling
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = '❌ ' + message;
+            alert.style.display = 'block';
+            document.getElementById('progressSection').classList.remove('active');
+        }
+
+        function hideError() {
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
