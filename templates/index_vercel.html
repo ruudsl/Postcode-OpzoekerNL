@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDOK Postcode Opzoeker (Vercel)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .textarea-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .textarea-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 15px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-card.success {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+        }
+
+        .summary-card.warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .summary-card.error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .summary-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .summary-card p {
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: block;
+        }
+
+        .results-table thead {
+            position: sticky;
+            top: 0;
+            background: white;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .postcode {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .postcode.error {
+            color: #e74c3c;
+        }
+
+        .postcode.not-found {
+            color: #f39c12;
+        }
+
+        .download-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border-left: 4px solid #c33;
+        }
+
+        .example {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .example h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .example pre {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .download-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📮 PDOK Postcode Opzoeker</h1>
+            <p>Zoek eenvoudig postcodes op via Nederlandse overheidsdata</p>
+            <span class="badge">☁️ Serverless op Vercel</span>
+        </div>
+
+        <div class="card">
+            <div class="warning">
+                ⚠️ <strong>Serverless versie:</strong> Max 20 adressen per keer. Voor grotere bestanden, gebruik de <a href="https://github.com/ruudsl/test" target="_blank">CLI versie</a>.
+            </div>
+
+            <div id="errorAlert" class="alert alert-error"></div>
+
+            <div id="inputSection">
+                <h3 style="margin-bottom: 15px;">✍️ Voer Adressen In</h3>
+                <textarea id="addressInput" class="textarea-input" placeholder="Voer adressen in, één per regel (max 20)...
+
+Bijvoorbeeld:
+Dam 1, AMSTERDAM
+Barrierweg 1, EINDHOVEN
+Coolsingel 40, ROTTERDAM"></textarea>
+
+                <button class="btn" onclick="processAddresses()">🔍 Zoek Postcodes</button>
+
+                <div class="example">
+                    <h4>📋 Voorbeeld formaat:</h4>
+                    <pre>Dam 1, AMSTERDAM
+Kalverstraat 92, AMSTERDAM
+Coolsingel 40, ROTTERDAM
+Neude 11, UTRECHT</pre>
+                </div>
+            </div>
+
+            <div id="loadingSection" class="loading">
+                <div class="spinner"></div>
+                <p><strong>Postcodes ophalen...</strong></p>
+                <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">Dit kan 5-10 seconden duren</p>
+            </div>
+
+            <div id="resultsSection" class="results-section">
+                <h3 style="margin-bottom: 20px;">✅ Resultaten</h3>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <h3 id="totalCount">0</h3>
+                        <p>Totaal</p>
+                    </div>
+                    <div class="summary-card success">
+                        <h3 id="foundCount">0</h3>
+                        <p>Gevonden</p>
+                    </div>
+                    <div class="summary-card warning">
+                        <h3 id="notFoundCount">0</h3>
+                        <p>Niet Gevonden</p>
+                    </div>
+                    <div class="summary-card error">
+                        <h3 id="errorCount">0</h3>
+                        <p>Errors</p>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Adres</th>
+                                <th>Postcode</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="download-buttons">
+                    <button class="btn" onclick="downloadCSV()">📊 Download CSV</button>
+                    <button class="btn btn-secondary" onclick="downloadTXT()">📄 Download TXT</button>
+                </div>
+
+                <button class="btn btn-secondary" onclick="reset()" style="margin-top: 15px;">🔄 Opnieuw</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Gebruikt data van PDOK Locatieserver (Nederlandse overheid)</p>
+            <p style="margin-top: 5px;">Gratis en betrouwbaar • Geen API key nodig</p>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = null;
+
+        async function processAddresses() {
+            const addresses = document.getElementById('addressInput').value;
+
+            if (!addresses.trim()) {
+                showError('Voer minimaal één adres in');
+                return;
+            }
+
+            const lines = addresses.split('\n').filter(l => l.trim());
+            if (lines.length > 20) {
+                showError('Maximum 20 adressen per keer (serverless limiet)');
+                return;
+            }
+
+            hideError();
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('loadingSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+
+            try {
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ addresses })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Verwerking mislukt');
+                }
+
+                currentResults = data;
+                showResults(data);
+
+            } catch (error) {
+                document.getElementById('loadingSection').classList.remove('active');
+                document.getElementById('inputSection').style.display = 'block';
+                showError(error.message);
+            }
+        }
+
+        function showResults(data) {
+            document.getElementById('loadingSection').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+
+            // Update summary
+            document.getElementById('totalCount').textContent = data.summary.total;
+            document.getElementById('foundCount').textContent = data.summary.found;
+            document.getElementById('notFoundCount').textContent = data.summary.not_found;
+            document.getElementById('errorCount').textContent = data.summary.errors;
+
+            // Fill table
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            data.results.forEach(result => {
+                const row = document.createElement('tr');
+
+                let postcodeClass = '';
+                if (result.postcode.startsWith('Error')) {
+                    postcodeClass = 'error';
+                } else if (result.postcode === 'Niet gevonden') {
+                    postcodeClass = 'not-found';
+                }
+
+                row.innerHTML = `
+                    <td>${result.regel_nummer}</td>
+                    <td>${result.adres}</td>
+                    <td class="postcode ${postcodeClass}">${result.postcode}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function downloadCSV() {
+            if (!currentResults) return;
+
+            let csv = 'regel_nummer,adres,postcode\n';
+            currentResults.results.forEach(r => {
+                csv += `${r.regel_nummer},"${r.adres}","${r.postcode}"\n`;
+            });
+
+            downloadFile(csv, 'postcodes.csv', 'text/csv');
+        }
+
+        function downloadTXT() {
+            if (!currentResults) return;
+
+            let txt = currentResults.results.map(r => r.postcode).join('\n');
+            downloadFile(txt, 'postcodes.txt', 'text/plain');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function reset() {
+            currentResults = null;
+            document.getElementById('addressInput').value = '';
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('inputSection').style.display = 'block';
+            hideError();
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = '❌ ' + message;
+            alert.classList.add('active');
+        }
+
+        function hideError() {
+            document.getElementById('errorAlert').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
