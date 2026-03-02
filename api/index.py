@@ -15,9 +15,11 @@ import requests
 PDOK_BASE_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free"
 MAX_RESULTS = 1
 API_TIMEOUT_SECONDS = 10
-API_DELAY_SECONDS = 0.3
+API_DELAY_SECONDS = 0.15  # Optimized: 0.15s = 400 req/min (still safe for PDOK)
 MAX_RETRIES = 3
 RETRY_DELAY_SECONDS = 2
+MAX_ADDRESSES_FREE = 50  # Vercel free tier (10s timeout)
+MAX_ADDRESSES_PRO = 200  # Vercel pro tier (60s timeout)
 POSTCODE_PATTERN = re.compile(r'\b(\d{4}\s?[A-Z]{2})\b')
 
 # ==================== FLASK APP ====================
@@ -158,9 +160,16 @@ def process():
         if not addresses:
             return jsonify({'error': 'Geen geldige adressen gevonden'}), 400
 
-        # Limit aantal adressen voor serverless (max 10 seconden execution time)
-        if len(addresses) > 20:
-            return jsonify({'error': 'Maximum 20 adressen tegelijk (serverless limiet)'}), 400
+        # Limit aantal adressen voor serverless timeout
+        # Free tier: 10s timeout = ~50 adressen
+        # Pro tier: 60s timeout = ~200 adressen
+        max_allowed = MAX_ADDRESSES_FREE  # Change to MAX_ADDRESSES_PRO if using Vercel Pro
+
+        if len(addresses) > max_allowed:
+            return jsonify({
+                'error': f'Maximum {max_allowed} adressen tegelijk (Vercel timeout limiet). '
+                         f'Voor meer adressen, gebruik de CLI versie.'
+            }), 400
 
         # Process synchroon
         result = process_addresses_sync(addresses)

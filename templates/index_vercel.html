@@ -296,7 +296,7 @@
 
         <div class="card">
             <div class="warning">
-                ⚠️ <strong>Serverless versie:</strong> Max 20 adressen per keer. Voor grotere bestanden, gebruik de <a href="https://github.com/ruudsl/test" target="_blank">CLI versie</a>.
+                ⚠️ <strong>Serverless versie:</strong> Max 50 adressen per keer. Voor grotere bestanden, gebruik de <a href="https://github.com/ruudsl/test" target="_blank">CLI versie</a>.
             </div>
 
             <div id="errorAlert" class="alert alert-error"></div>
@@ -390,8 +390,8 @@ Neude 11, UTRECHT</pre>
             }
 
             const lines = addresses.split('\n').filter(l => l.trim());
-            if (lines.length > 20) {
-                showError('Maximum 20 adressen per keer (serverless limiet)');
+            if (lines.length > 50) {
+                showError('Maximum 50 adressen per keer (serverless limiet)');
                 return;
             }
 
