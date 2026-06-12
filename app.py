@@ -6,6 +6,7 @@ Flask web applicatie voor het opzoeken van postcodes via PDOK API
 
 import json
 import logging
+import os
 import re
 import time
 import uuid
@@ -37,6 +38,15 @@ POSTCODE_PATTERN = re.compile(r'\b(\d{4}\s?[A-Z]{2})\b')
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+@app.after_request
+def set_security_headers(response):
+    """Security headers voor alle responses"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
 
 # Storage voor job status
 jobs: Dict[str, Dict] = {}
@@ -401,4 +411,6 @@ if __name__ == '__main__':
     print("📝 Upload adressen.txt bestanden of voer adressen handmatig in")
     print("⏸️  Stop met Ctrl+C\n")
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Debug alleen aan via expliciete env var (security fix uit audit)
+    debug_mode = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)

@@ -3,507 +3,970 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDOK Postcode Opzoeker (Vercel)</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+
+    <!-- ==================== SEO ==================== -->
+    <title>Postcode Opzoeken — Gratis Nederlandse Postcode Zoeker | Postcode Opzoeker NL</title>
+    <meta name="description" content="Zoek gratis Nederlandse postcodes op via adres. Plak tot {{ max_addresses }} adressen tegelijk en krijg direct alle postcodes — met CSV-export. Officiële PDOK overheidsdata, geen account nodig.">
+    <meta name="keywords" content="postcode opzoeken, postcode zoeken, nederlandse postcode, postcode via adres, bulk postcode lookup, PDOK, postcode finder, adres naar postcode, gratis postcode tool">
+    <meta name="author" content="Postcode Opzoeker NL">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="theme-color" content="#070a13">
+    <link rel="canonical" href="{{ base_url }}/">
+
+    <!-- Open Graph (social sharing) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ base_url }}/">
+    <meta property="og:site_name" content="Postcode Opzoeker NL">
+    <meta property="og:title" content="Postcode Opzoeken — Gratis Nederlandse Postcode Zoeker">
+    <meta property="og:description" content="Plak tot {{ max_addresses }} adressen en krijg direct alle Nederlandse postcodes. Gratis, officiële PDOK-data, geen account nodig.">
+    <meta property="og:locale" content="nl_NL">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Postcode Opzoeken — Gratis Nederlandse Postcode Zoeker">
+    <meta name="twitter:description" content="Plak tot {{ max_addresses }} adressen en krijg direct alle Nederlandse postcodes. Gratis en open source.">
+
+    <!-- Favicon (SVG emoji, geen extra request) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📮</text></svg>">
+
+    <!-- Structured data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Postcode Opzoeker NL",
+      "url": "{{ base_url }}/",
+      "description": "Gratis online tool om Nederlandse postcodes op te zoeken op basis van adres. Bulk-invoer tot {{ max_addresses }} adressen, CSV- en TXT-export, gebaseerd op officiële PDOK-overheidsdata.",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "nl",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "featureList": [
+        "Postcode opzoeken via adres",
+        "Bulk-invoer tot {{ max_addresses }} adressen tegelijk",
+        "CSV en TXT export",
+        "Officiële PDOK overheidsdata",
+        "Geen account of API key nodig"
+      ]
+    }
+    </script>
+
+    <!-- Structured data: FAQ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Hoe zoek ik een Nederlandse postcode op via een adres?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Typ of plak het adres in het invoerveld in het formaat 'Straatnaam 12, PLAATS' (bijvoorbeeld 'Dam 1, AMSTERDAM') en klik op Zoek postcodes. Je krijgt direct de postcode in het formaat 1234AB."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is deze postcode zoeker gratis?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja, volledig gratis. Er is geen account, registratie of API key nodig. De tool is bovendien open source (MIT-licentie)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoeveel adressen kan ik tegelijk opzoeken?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Via de webinterface tot {{ max_addresses }} adressen per keer. Voor grotere lijsten (honderden of duizenden adressen) is er een gratis command-line versie zonder limiet."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Waar komen de postcodegegevens vandaan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Alle gegevens komen van de PDOK Locatieserver, de officiële open-data dienst van de Nederlandse overheid. De data is daarmee actueel en betrouwbaar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Worden mijn adressen opgeslagen?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nee. Adressen worden alleen tijdens de zoekopdracht verwerkt en direct daarna vergeten. Er is geen database en er worden geen gegevens bewaard."
+          }
         }
+      ]
+    }
+    </script>
+
+    <style>
+        /* ==================== DESIGN TOKENS ==================== */
+        :root {
+            --bg: #070a13;
+            --bg-soft: #0b0f1d;
+            --glass: rgba(255, 255, 255, 0.045);
+            --glass-strong: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.09);
+            --border-hover: rgba(255, 255, 255, 0.18);
+            --text: #eef1f8;
+            --text-dim: #9aa3b8;
+            --text-faint: #5d647e;
+            --accent-1: #6366f1;
+            --accent-2: #a78bfa;
+            --accent-3: #22d3ee;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --radius: 18px;
+            --radius-sm: 12px;
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.35);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
+        /* ==================== AURORA ACHTERGROND ==================== */
+        .aurora {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            background:
+                radial-gradient(ellipse 60% 40% at 15% 0%, rgba(99, 102, 241, 0.22), transparent),
+                radial-gradient(ellipse 50% 35% at 85% 10%, rgba(34, 211, 238, 0.13), transparent),
+                radial-gradient(ellipse 70% 45% at 50% 100%, rgba(167, 139, 250, 0.12), transparent),
+                var(--bg);
+        }
+
+        .aurora::before, .aurora::after {
+            content: '';
+            position: absolute;
+            width: 55vw;
+            height: 55vw;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: 0.16;
+            animation: drift 24s ease-in-out infinite alternate;
+        }
+
+        .aurora::before {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+            top: -20vw;
+            left: -12vw;
+        }
+
+        .aurora::after {
+            background: linear-gradient(135deg, var(--accent-2), var(--accent-1));
+            bottom: -25vw;
+            right: -12vw;
+            animation-delay: -12s;
+        }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ==================== LAYOUT ==================== */
         .container {
-            max-width: 800px;
+            max-width: 880px;
             margin: 0 auto;
+            padding: 0 20px;
         }
 
-        .header {
+        /* ==================== NAV ==================== */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 0;
+        }
+
+        .nav .logo {
+            font-weight: 700;
+            font-size: 1.05rem;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .nav .logo .mark { font-size: 1.4rem; }
+
+        .nav a.gh {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            transition: border-color 0.25s, color 0.25s;
+        }
+
+        .nav a.gh:hover { border-color: var(--border-hover); color: var(--text); }
+
+        /* ==================== HERO ==================== */
+        .hero {
             text-align: center;
-            color: white;
-            margin-bottom: 40px;
+            padding: 56px 0 40px;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        .hero .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent-3);
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            border-radius: 999px;
+            padding: 6px 16px;
+            margin-bottom: 26px;
         }
 
-        .header p {
+        .hero .pill .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.3rem, 6vw, 3.6rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.12;
+            margin-bottom: 18px;
+        }
+
+        .hero h1 .grad {
+            background: linear-gradient(100deg, var(--accent-1), var(--accent-2) 50%, var(--accent-3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero .sub {
+            color: var(--text-dim);
             font-size: 1.1rem;
-            opacity: 0.9;
+            max-width: 560px;
+            margin: 0 auto 28px;
         }
 
-        .badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            margin-top: 10px;
+        .usps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
 
+        .usps span {
+            font-size: 0.84rem;
+            color: var(--text-dim);
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 7px 15px;
+            backdrop-filter: blur(8px);
+        }
+
+        .usps span b { color: var(--text); font-weight: 600; }
+
+        /* ==================== GLASS CARD ==================== */
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             padding: 30px;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
         }
 
-        .warning {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
+        .app-card { box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45); }
+
+        /* ==================== INVOER ==================== */
+        .input-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .textarea-input {
-            width: 100%;
-            min-height: 200px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95rem;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
+        .input-head h2 { font-size: 1.12rem; font-weight: 600; }
 
-        .textarea-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
+        .demo-btn {
+            background: none;
+            border: 1px dashed var(--border-hover);
+            color: var(--text-dim);
+            font-family: var(--font);
+            font-size: 0.82rem;
+            padding: 7px 14px;
+            border-radius: 999px;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            margin-top: 15px;
+            transition: color 0.25s, border-color 0.25s;
+        }
+
+        .demo-btn:hover { color: var(--accent-3); border-color: var(--accent-3); }
+
+        textarea {
+            width: 100%;
+            min-height: 190px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.32);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            resize: vertical;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        textarea::placeholder { color: var(--text-faint, #5d647e); }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+        }
+
+        .input-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .counter.over { color: var(--danger); font-weight: 600; }
+
+        kbd {
+            background: var(--glass-strong);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 1px 6px;
+            font-size: 0.72rem;
+            font-family: inherit;
+        }
+
+        /* ==================== CTA ==================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            width: 100%;
+            padding: 15px 28px;
+            margin-top: 18px;
+            background: linear-gradient(100deg, var(--accent-1), var(--accent-2));
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 1.02rem;
+            font-weight: 650;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.25s, opacity 0.2s;
+            box-shadow: var(--shadow-glow);
         }
 
         .btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 0 55px rgba(99, 102, 241, 0.55);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .btn:active:not(:disabled) { transform: translateY(0); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: var(--glass-strong);
+            box-shadow: none;
+            color: var(--text);
+            border: 1px solid var(--border);
         }
 
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
+        .btn-ghost:hover:not(:disabled) {
+            box-shadow: none;
+            border-color: var(--border-hover);
         }
 
-        .loading.active {
-            display: block;
+        :is(.btn, .demo-btn, textarea, .gh, details summary):focus-visible {
+            outline: 2px solid var(--accent-3);
+            outline-offset: 2px;
         }
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+        /* ==================== LOADING ==================== */
+        .loading { display: none; text-align: center; padding: 46px 0; }
+        .loading.active { display: block; }
+
+        .orbit {
+            width: 52px; height: 52px;
             margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 3px solid var(--glass-strong);
+            border-top-color: var(--accent-1);
+            border-right-color: var(--accent-2);
+            animation: spin 0.9s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading p { color: var(--text-dim); font-size: 0.92rem; }
+        .loading .eta { font-size: 0.8rem; margin-top: 6px; }
+
+        /* ==================== RESULTATEN ==================== */
+        .results { display: none; }
+        .results.active { display: block; animation: fadeUp 0.45s ease; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .results-section {
-            display: none;
-        }
-
-        .results-section.active {
-            display: block;
-        }
-
-        .summary-grid {
+        .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
         }
 
-        .summary-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 20px;
-            border-radius: 10px;
+        .stat {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
             text-align: center;
         }
 
-        .summary-card.success {
-            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
-        }
+        .stat b { display: block; font-size: 1.7rem; font-weight: 750; }
+        .stat span { font-size: 0.76rem; color: var(--text-dim); }
+        .stat.ok b { color: var(--success); }
+        .stat.warn b { color: var(--warning); }
+        .stat.err b { color: var(--danger); }
 
-        .summary-card.warning {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        }
-
-        .summary-card.error {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-        }
-
-        .summary-card h3 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-
-        .summary-card p {
-            color: #555;
-            font-size: 0.9rem;
-        }
-
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            max-height: 400px;
+        .table-wrap {
+            max-height: 380px;
             overflow-y: auto;
-            display: block;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
         }
 
-        .results-table thead {
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+
+        thead th {
             position: sticky;
             top: 0;
-            background: white;
-        }
-
-        .results-table th,
-        .results-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .results-table th {
-            background: #f8f9fa;
+            background: var(--bg-soft);
+            color: var(--text-dim);
             font-weight: 600;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 12px 14px;
         }
 
-        .postcode {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            color: #667eea;
+        tbody td {
+            padding: 11px 14px;
+            border-top: 1px solid var(--border);
         }
 
-        .postcode.error {
-            color: #e74c3c;
+        tbody tr { transition: background 0.15s; }
+        tbody tr:hover { background: var(--glass); }
+
+        .pc {
+            font-family: 'SF Mono', Consolas, monospace;
+            font-weight: 700;
+            color: var(--accent-3);
         }
 
-        .postcode.not-found {
-            color: #f39c12;
+        .pc.nf { color: var(--warning); font-weight: 500; }
+        .pc.er { color: var(--danger); font-weight: 500; }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-faint, #5d647e);
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 3px 7px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
         }
 
-        .download-buttons {
+        .copy-btn:hover { color: var(--accent-3); background: var(--glass-strong); }
+
+        .dl-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
         }
 
-        .btn-secondary {
-            background: #6c757d;
-            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        .dl-row .btn { margin-top: 0; }
+
+        /* ==================== FEATURES ==================== */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+            margin: 50px 0;
         }
 
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
+        .feature {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 26px;
+            transition: transform 0.25s, border-color 0.25s;
         }
 
-        .alert.active {
-            display: block;
-        }
+        .feature:hover { transform: translateY(-4px); border-color: var(--border-hover); }
+        .feature .ico { font-size: 1.7rem; margin-bottom: 12px; display: block; }
+        .feature h3 { font-size: 1rem; font-weight: 650; margin-bottom: 7px; }
+        .feature p { font-size: 0.86rem; color: var(--text-dim); }
 
-        .alert-error {
-            background: #fee;
-            color: #c33;
-            border-left: 4px solid #c33;
-        }
-
-        .example {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-
-        .example h4 {
-            margin-bottom: 10px;
-            color: #667eea;
-        }
-
-        .example pre {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-
-        .footer {
+        /* ==================== FAQ ==================== */
+        .faq { margin: 50px 0 60px; }
+        .faq h2 {
             text-align: center;
-            color: white;
-            margin-top: 40px;
-            opacity: 0.8;
-            font-size: 0.9rem;
+            font-size: 1.6rem;
+            font-weight: 750;
+            letter-spacing: -0.02em;
+            margin-bottom: 26px;
         }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8rem;
-            }
+        details {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
 
-            .download-buttons {
-                grid-template-columns: 1fr;
-            }
+        details summary {
+            padding: 17px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.94rem;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        details summary::-webkit-details-marker { display: none; }
+        details summary::after { content: '+'; color: var(--accent-2); font-size: 1.25rem; transition: transform 0.25s; }
+        details[open] summary::after { transform: rotate(45deg); }
+        details .a { padding: 0 20px 17px; color: var(--text-dim); font-size: 0.9rem; }
+
+        /* ==================== TOAST ==================== */
+        .toast {
+            position: fixed;
+            bottom: 26px;
+            left: 50%;
+            transform: translate(-50%, 80px);
+            background: var(--bg-soft);
+            border: 1px solid var(--border-hover);
+            border-radius: 999px;
+            padding: 11px 22px;
+            font-size: 0.88rem;
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 100;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+        }
+
+        .toast.show { transform: translate(-50%, 0); opacity: 1; }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+
+        /* ==================== FOOTER ==================== */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 30px 0 40px;
+            text-align: center;
+            color: var(--text-faint, #5d647e);
+            font-size: 0.82rem;
+        }
+
+        footer a { color: var(--text-dim); text-decoration: none; }
+        footer a:hover { color: var(--text); }
+        footer .links { display: flex; justify-content: center; gap: 20px; margin-bottom: 12px; flex-wrap: wrap; }
+
+        @media (max-width: 600px) {
+            .card { padding: 20px; }
+            .hero { padding: 36px 0 30px; }
         }
     </style>
+
+    <!-- Inter font, non-blocking -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
 </head>
 <body>
+    <div class="aurora" aria-hidden="true"></div>
+
     <div class="container">
-        <div class="header">
-            <h1>📮 PDOK Postcode Opzoeker</h1>
-            <p>Zoek eenvoudig postcodes op via Nederlandse overheidsdata</p>
-            <span class="badge">☁️ Serverless op Vercel</span>
-        </div>
+        <header>
+            <nav class="nav" aria-label="Hoofdnavigatie">
+                <a href="/" class="logo"><span class="mark">📮</span> Postcode&nbsp;Opzoeker&nbsp;NL</a>
+                <a class="gh" href="https://github.com/ruudsl/Postcode-OpzoekerNL" target="_blank" rel="noopener">Open source ↗</a>
+            </nav>
+        </header>
 
-        <div class="card">
-            <div class="warning">
-                ⚠️ <strong>Serverless versie:</strong> Max 50 adressen per keer. Voor grotere bestanden, gebruik de <a href="https://github.com/ruudsl/test" target="_blank">CLI versie</a>.
-            </div>
+        <main>
+            <!-- ==================== HERO ==================== -->
+            <section class="hero" aria-labelledby="hero-title">
+                <span class="pill"><span class="dot"></span> Live · Officiële PDOK-overheidsdata</span>
+                <h1 id="hero-title">Nederlandse postcodes opzoeken,<br><span class="grad">in seconden.</span></h1>
+                <p class="sub">Plak tot {{ max_addresses }} adressen tegelijk en krijg direct alle postcodes terug — inclusief CSV-export. Zonder account, zonder gedoe.</p>
+                <div class="usps">
+                    <span>✓ <b>100% gratis</b></span>
+                    <span>✓ <b>Geen account</b> nodig</span>
+                    <span>✓ <b>Officiële</b> overheidsdata</span>
+                    <span>✓ Niets wordt <b>opgeslagen</b></span>
+                </div>
+            </section>
 
-            <div id="errorAlert" class="alert alert-error"></div>
+            <!-- ==================== APP ==================== -->
+            <section class="card app-card" aria-label="Postcode zoeker">
+                <div id="inputSection">
+                    <div class="input-head">
+                        <h2>Voer adressen in</h2>
+                        <button type="button" class="demo-btn" onclick="fillDemo()">✨ Probeer een voorbeeld</button>
+                    </div>
 
-            <div id="inputSection">
-                <h3 style="margin-bottom: 15px;">✍️ Voer Adressen In</h3>
-                <textarea id="addressInput" class="textarea-input" placeholder="Voer adressen in, één per regel (max 50)...
+                    <label for="addressInput" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Adressen, één per regel</label>
+                    <textarea id="addressInput" spellcheck="false"
+                        placeholder="Eén adres per regel, bijvoorbeeld:
 
-Bijvoorbeeld:
 Dam 1, AMSTERDAM
-Barrierweg 1, EINDHOVEN
-Coolsingel 40, ROTTERDAM"></textarea>
-
-                <button class="btn" onclick="processAddresses()">🔍 Zoek Postcodes</button>
-
-                <div class="example">
-                    <h4>📋 Voorbeeld formaat:</h4>
-                    <pre>Dam 1, AMSTERDAM
-Kalverstraat 92, AMSTERDAM
 Coolsingel 40, ROTTERDAM
-Neude 11, UTRECHT</pre>
+Neude 11, UTRECHT"></textarea>
+
+                    <div class="input-foot">
+                        <span class="counter" id="counter">0 / {{ max_addresses }} adressen</span>
+                        <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> om te zoeken</span>
+                    </div>
+
+                    <button class="btn" id="searchBtn" onclick="processAddresses()">
+                        🔍 Zoek postcodes
+                    </button>
                 </div>
+
+                <div id="loadingSection" class="loading" role="status" aria-live="polite">
+                    <div class="orbit" aria-hidden="true"></div>
+                    <p><strong>Postcodes ophalen via PDOK…</strong></p>
+                    <p class="eta" id="eta"></p>
+                </div>
+
+                <div id="resultsSection" class="results" aria-live="polite">
+                    <div class="stats">
+                        <div class="stat"><b id="totalCount">0</b><span>Totaal</span></div>
+                        <div class="stat ok"><b id="foundCount">0</b><span>Gevonden</span></div>
+                        <div class="stat warn"><b id="notFoundCount">0</b><span>Niet gevonden</span></div>
+                        <div class="stat err"><b id="errorCount">0</b><span>Errors</span></div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>#</th><th>Adres</th><th>Postcode</th><th aria-label="Kopiëren"></th></tr>
+                            </thead>
+                            <tbody id="resultsBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="dl-row">
+                        <button class="btn" onclick="downloadCSV()">📊 Download CSV</button>
+                        <button class="btn btn-ghost" onclick="downloadTXT()">📄 Download TXT</button>
+                        <button class="btn btn-ghost" onclick="copyAll()">📋 Kopieer postcodes</button>
+                        <button class="btn btn-ghost" onclick="reset()">🔄 Nieuwe zoekopdracht</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== FEATURES (SEO content) ==================== -->
+            <section class="features" aria-label="Voordelen">
+                <article class="feature">
+                    <span class="ico">⚡</span>
+                    <h3>Bulk postcode lookup</h3>
+                    <p>Zoek tot {{ max_addresses }} Nederlandse postcodes tegelijk op via adres. Duplicaten worden automatisch herkend en maar één keer opgezocht.</p>
+                </article>
+                <article class="feature">
+                    <span class="ico">🏛️</span>
+                    <h3>Officiële PDOK-data</h3>
+                    <p>Alle postcodes komen rechtstreeks van de PDOK Locatieserver van de Nederlandse overheid — altijd actueel en betrouwbaar.</p>
+                </article>
+                <article class="feature">
+                    <span class="ico">🔒</span>
+                    <h3>Privacy by design</h3>
+                    <p>Geen account, geen tracking, geen opslag. Je adressen worden direct na de zoekopdracht vergeten. Volledig open source.</p>
+                </article>
+            </section>
+
+            <!-- ==================== FAQ (SEO content) ==================== -->
+            <section class="faq" aria-labelledby="faq-title">
+                <h2 id="faq-title">Veelgestelde vragen</h2>
+
+                <details>
+                    <summary>Hoe zoek ik een postcode op via een adres?</summary>
+                    <div class="a">Typ of plak het adres in het formaat <strong>Straatnaam 12, PLAATS</strong> (bijvoorbeeld <em>Dam 1, AMSTERDAM</em>) en klik op <strong>Zoek postcodes</strong>. Je krijgt direct de postcode in het formaat 1234AB terug.</div>
+                </details>
+                <details>
+                    <summary>Is deze postcode zoeker echt gratis?</summary>
+                    <div class="a">Ja, volledig gratis en zonder limieten op het aantal zoekopdrachten. Er is geen account of registratie nodig en de broncode is open source (MIT-licentie).</div>
+                </details>
+                <details>
+                    <summary>Hoeveel adressen kan ik tegelijk opzoeken?</summary>
+                    <div class="a">Via deze webinterface tot <strong>{{ max_addresses }} adressen per keer</strong>. Voor grotere lijsten (honderden of duizenden adressen) is er een gratis <a href="https://github.com/ruudsl/Postcode-OpzoekerNL" target="_blank" rel="noopener" style="color: var(--accent-3)">command-line versie</a> zonder limiet.</div>
+                </details>
+                <details>
+                    <summary>Waar komen de postcodegegevens vandaan?</summary>
+                    <div class="a">Van de <strong>PDOK Locatieserver</strong>, de officiële open-data dienst van de Nederlandse overheid (Kadaster). Daarmee is de data actueel, compleet en betrouwbaar.</div>
+                </details>
+                <details>
+                    <summary>Worden mijn adressen opgeslagen?</summary>
+                    <div class="a">Nee. Adressen worden alleen tijdens de zoekopdracht verwerkt en direct daarna vergeten. Er is geen database, geen logging van adressen en geen tracking.</div>
+                </details>
+                <details>
+                    <summary>Kan ik de resultaten exporteren naar Excel?</summary>
+                    <div class="a">Ja. Download de resultaten als <strong>CSV-bestand</strong> (opent direct in Excel, inclusief correcte tekens) of als <strong>TXT-bestand</strong> met alleen de postcodes.</div>
+                </details>
+            </section>
+        </main>
+
+        <footer>
+            <div class="links">
+                <a href="https://github.com/ruudsl/Postcode-OpzoekerNL" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://www.pdok.nl" target="_blank" rel="noopener">PDOK</a>
+                <a href="/llms.txt">Voor AI-assistenten</a>
+                <a href="/api/health">API status</a>
             </div>
-
-            <div id="loadingSection" class="loading">
-                <div class="spinner"></div>
-                <p><strong>Postcodes ophalen...</strong></p>
-                <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">Dit kan 5-10 seconden duren</p>
-            </div>
-
-            <div id="resultsSection" class="results-section">
-                <h3 style="margin-bottom: 20px;">✅ Resultaten</h3>
-
-                <div class="summary-grid">
-                    <div class="summary-card">
-                        <h3 id="totalCount">0</h3>
-                        <p>Totaal</p>
-                    </div>
-                    <div class="summary-card success">
-                        <h3 id="foundCount">0</h3>
-                        <p>Gevonden</p>
-                    </div>
-                    <div class="summary-card warning">
-                        <h3 id="notFoundCount">0</h3>
-                        <p>Niet Gevonden</p>
-                    </div>
-                    <div class="summary-card error">
-                        <h3 id="errorCount">0</h3>
-                        <p>Errors</p>
-                    </div>
-                </div>
-
-                <div style="overflow-x: auto;">
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Adres</th>
-                                <th>Postcode</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultsTableBody">
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="download-buttons">
-                    <button class="btn" onclick="downloadCSV()">📊 Download CSV</button>
-                    <button class="btn btn-secondary" onclick="downloadTXT()">📄 Download TXT</button>
-                </div>
-
-                <button class="btn btn-secondary" onclick="reset()" style="margin-top: 15px;">🔄 Opnieuw</button>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>Gebruikt data van PDOK Locatieserver (Nederlandse overheid)</p>
-            <p style="margin-top: 5px;">Gratis en betrouwbaar • Geen API key nodig</p>
-        </div>
+            <p>Postcode Opzoeker NL · Gebouwd op officiële PDOK-overheidsdata · Open source onder MIT-licentie</p>
+        </footer>
     </div>
 
+    <div class="toast" id="toast" role="status"></div>
+
     <script>
+        const MAX_ADDRESSES = {{ max_addresses }};
         let currentResults = null;
 
+        const $ = id => document.getElementById(id);
+        const input = $('addressInput');
+
+        // ---------- Live teller ----------
+        function countLines() {
+            return input.value.split('\n').filter(l => l.trim()).length;
+        }
+
+        input.addEventListener('input', () => {
+            const n = countLines();
+            const c = $('counter');
+            c.textContent = `${n} / ${MAX_ADDRESSES} adressen`;
+            c.classList.toggle('over', n > MAX_ADDRESSES);
+        });
+
+        // ---------- Sneltoets ----------
+        input.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') processAddresses();
+        });
+
+        // ---------- Demo ----------
+        function fillDemo() {
+            input.value = `Dam 1, AMSTERDAM
+Coolsingel 40, ROTTERDAM
+Neude 11, UTRECHT
+Barrierweg 1, EINDHOVEN
+Grote Markt 1, GRONINGEN`;
+            input.dispatchEvent(new Event('input'));
+            input.focus();
+        }
+
+        // ---------- Toast ----------
+        let toastTimer;
+        function toast(msg, isError = false) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.classList.toggle('error', isError);
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+        }
+
+        // ---------- Verwerken ----------
         async function processAddresses() {
-            const addresses = document.getElementById('addressInput').value;
+            const addresses = input.value;
+            const n = countLines();
 
-            if (!addresses.trim()) {
-                showError('Voer minimaal één adres in');
-                return;
-            }
+            if (!addresses.trim()) return toast('Voer minimaal één adres in', true);
+            if (n > MAX_ADDRESSES) return toast(`Maximum ${MAX_ADDRESSES} adressen per keer`, true);
 
-            const lines = addresses.split('\n').filter(l => l.trim());
-            if (lines.length > 50) {
-                showError('Maximum 50 adressen per keer (serverless limiet)');
-                return;
-            }
-
-            hideError();
-            document.getElementById('inputSection').style.display = 'none';
-            document.getElementById('loadingSection').classList.add('active');
-            document.getElementById('resultsSection').classList.remove('active');
+            $('inputSection').style.display = 'none';
+            $('resultsSection').classList.remove('active');
+            $('loadingSection').classList.add('active');
+            $('eta').textContent = `${n} adres${n === 1 ? '' : 'sen'} · duurt ongeveer ${Math.max(2, Math.ceil(n * 0.5))} seconden`;
 
             try {
-                const response = await fetch('/api/process', {
+                const res = await fetch('/api/process', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ addresses })
                 });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Verwerking mislukt');
-                }
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Verwerking mislukt');
 
                 currentResults = data;
                 showResults(data);
-
-            } catch (error) {
-                document.getElementById('loadingSection').classList.remove('active');
-                document.getElementById('inputSection').style.display = 'block';
-                showError(error.message);
+            } catch (err) {
+                $('loadingSection').classList.remove('active');
+                $('inputSection').style.display = 'block';
+                toast(err.message, true);
             }
         }
 
+        // ---------- Resultaten ----------
         function showResults(data) {
-            document.getElementById('loadingSection').classList.remove('active');
-            document.getElementById('resultsSection').classList.add('active');
+            $('loadingSection').classList.remove('active');
+            $('resultsSection').classList.add('active');
 
-            // Update summary
-            document.getElementById('totalCount').textContent = data.summary.total;
-            document.getElementById('foundCount').textContent = data.summary.found;
-            document.getElementById('notFoundCount').textContent = data.summary.not_found;
-            document.getElementById('errorCount').textContent = data.summary.errors;
+            $('totalCount').textContent = data.summary.total;
+            $('foundCount').textContent = data.summary.found;
+            $('notFoundCount').textContent = data.summary.not_found;
+            $('errorCount').textContent = data.summary.errors;
 
-            // Fill table
-            const tbody = document.getElementById('resultsTableBody');
+            const tbody = $('resultsBody');
             tbody.innerHTML = '';
 
-            data.results.forEach(result => {
-                const row = document.createElement('tr');
+            data.results.forEach(r => {
+                const tr = document.createElement('tr');
+                let cls = 'pc';
+                if (r.postcode.startsWith('Error')) cls += ' er';
+                else if (r.postcode === 'Niet gevonden') cls += ' nf';
 
-                let postcodeClass = '';
-                if (result.postcode.startsWith('Error')) {
-                    postcodeClass = 'error';
-                } else if (result.postcode === 'Niet gevonden') {
-                    postcodeClass = 'not-found';
+                const tdNum = document.createElement('td');
+                tdNum.textContent = r.regel_nummer;
+                const tdAddr = document.createElement('td');
+                tdAddr.textContent = r.adres;
+                const tdPc = document.createElement('td');
+                tdPc.className = cls;
+                tdPc.textContent = r.postcode;
+                const tdCopy = document.createElement('td');
+
+                if (cls === 'pc') {
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn';
+                    btn.textContent = '📋';
+                    btn.title = 'Kopieer postcode';
+                    btn.setAttribute('aria-label', `Kopieer ${r.postcode}`);
+                    btn.onclick = () => copyText(r.postcode);
+                    tdCopy.appendChild(btn);
                 }
 
-                row.innerHTML = `
-                    <td>${result.regel_nummer}</td>
-                    <td>${result.adres}</td>
-                    <td class="postcode ${postcodeClass}">${result.postcode}</td>
-                `;
-                tbody.appendChild(row);
+                tr.append(tdNum, tdAddr, tdPc, tdCopy);
+                tbody.appendChild(tr);
             });
+
+            if (data.summary.found > 0) {
+                toast(`✅ ${data.summary.found} postcode${data.summary.found === 1 ? '' : 's'} gevonden`);
+            }
+        }
+
+        // ---------- Klembord ----------
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                toast(`Gekopieerd: ${text}`);
+            } catch {
+                toast('Kopiëren mislukt', true);
+            }
+        }
+
+        function copyAll() {
+            if (!currentResults) return;
+            const codes = currentResults.results
+                .map(r => r.postcode)
+                .filter(p => !p.startsWith('Error') && p !== 'Niet gevonden');
+            if (!codes.length) return toast('Geen postcodes om te kopiëren', true);
+            copyText(codes.join('\n'));
+        }
+
+        // ---------- Downloads ----------
+        function csvEscape(v) {
+            return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
         }
 
         function downloadCSV() {
             if (!currentResults) return;
-
             let csv = 'regel_nummer,adres,postcode\n';
             currentResults.results.forEach(r => {
-                csv += `${r.regel_nummer},"${r.adres}","${r.postcode}"\n`;
+                csv += `${r.regel_nummer},${csvEscape(r.adres)},${csvEscape(r.postcode)}\n`;
             });
-
-            downloadFile(csv, 'postcodes.csv', 'text/csv');
+            // UTF-8 BOM zodat Excel accenten correct toont
+            downloadFile('\ufeff' + csv, 'postcodes.csv', 'text/csv;charset=utf-8');
         }
 
         function downloadTXT() {
             if (!currentResults) return;
-
-            let txt = currentResults.results.map(r => r.postcode).join('\n');
-            downloadFile(txt, 'postcodes.txt', 'text/plain');
+            downloadFile(currentResults.results.map(r => r.postcode).join('\n'),
+                         'postcodes.txt', 'text/plain;charset=utf-8');
         }
 
-        function downloadFile(content, filename, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
+        function downloadFile(content, filename, mime) {
+            const blob = new Blob([content], { type: mime });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
+            const a = Object.assign(document.createElement('a'), { href: url, download: filename });
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
+            a.remove();
             URL.revokeObjectURL(url);
         }
 
+        // ---------- Reset ----------
         function reset() {
             currentResults = null;
-            document.getElementById('addressInput').value = '';
-            document.getElementById('resultsSection').classList.remove('active');
-            document.getElementById('inputSection').style.display = 'block';
-            hideError();
-        }
-
-        function showError(message) {
-            const alert = document.getElementById('errorAlert');
-            alert.textContent = '❌ ' + message;
-            alert.classList.add('active');
-        }
-
-        function hideError() {
-            document.getElementById('errorAlert').classList.remove('active');
+            $('resultsSection').classList.remove('active');
+            $('inputSection').style.display = 'block';
+            input.focus();
         }
     </script>
 </body>
